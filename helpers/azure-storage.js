@@ -6,23 +6,24 @@ const { AZURE: { account_key, account_name, container_name, sasExpiryTime } } = 
 
 const blobService = azure.createBlobService(account_name, account_key);
 
+const StorageService = require('./cloudStorageServices/index');
+
 const getBlobReadStream = ({ filePath }) => {
     return blobService.createReadStream(container_name, filePath);
 }
 
 const checkIfBlobExists = ({ container = container_name, filePath }) => {
     return new Promise((resolve, reject) => {
-        blobService.doesBlobExist(container, filePath, (error, success) => {
-            if (error) {
-                return reject(error);
-            }
+        StorageService.CLOUD_CLIENT.fileExists(container, filePath, (error, response) => {
+          if (error) {
+            return reject(error);
+          }
 
-            if (success && !success.exists) {
-                return reject(false);
-            }
-
-            resolve(success);
-        })
+          if (_.get(response, 'exists')) {
+            return reject(false);
+          }
+          resolve(response);
+        });
     })
 }
 
@@ -46,9 +47,8 @@ const getSharedAccessSignature = ({ container = container_name, filePath, header
             if (('filename' in headers) && ('content-disposition' in headers) && (headers['content-disposition'] === 'attachment')) {
                 azureHeaders.contentDisposition = `attachment;filename=${headers.filename}`;
             }
-
-            const token = blobService.generateSharedAccessSignature(container, filePath, sharedAccessPolicy, azureHeaders);
-            const sasUrl = blobService.getUrl(container, filePath, token);
+            const token = StorageService.CLOUD_CLIENT.generateSharedAccessSignature(container, filePath, sharedAccessPolicy, azureHeaders);
+            const sasUrl = StorageService.CLOUD_CLIENT.getUrl(container, filePath, token);
             resolve({ sasUrl, expiresAt: Date.parse(expiryDate), startDate });
         } catch (error) {
             reject(error);
