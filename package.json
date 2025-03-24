@@ -19,6 +19,7 @@
   "author": "ravinder kumar",
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/storage": "^7.7.0",
     "axios": "^0.27.2",
     "axios-debug-log": "^0.8.4",
     "azure-storage": "^2.10.7",

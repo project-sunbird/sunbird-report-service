@@ -46,6 +46,14 @@ const envVariables = {
         account_key: env.sunbird_azure_account_key,
         sasExpiryTime: env.sunbird_report_sas_expiry_in_minutes || 60 // in minutes
     },
+    GCLOUD: {
+        project_id: env.sunbird_gcloud_project_id,
+        bucket_name: env.sunbird_gcloud_bucket_name || 'reports',
+        client_email: env.sunbird_gcloud_client_email || 'email.com',
+        private_key: env.sunbird_gcloud_private_key?.replace(/\\n/g, '\n'),
+        signed_url_expiry: env.sunbird_report_signed_url_expiry_in_minutes || 60 // in minutes
+    },
+    CLOUD_STORAGE_PROVIDER: env.SUNBIRD_CLOUD_STORAGE_PROVIDER || 'azure', // 'azure' or 'gcloud'
     UPSTREAM: {
         LEARNER: env.sunbird_learner_player_url,
         CONTENT_PROXY: env.sunbird_content_proxy_url,
