@@ -41,19 +41,19 @@ const envVariables = {
         CACHE_TTL: env.sunbird_cache_ttl || 1800,
     },
     AZURE: {
-        container_name: env.sunbird_azure_report_container_name,
-        account_name: env.sunbird_azure_account_name,
-        account_key: env.sunbird_azure_account_key,
+        container_name: env.cloud_storage_privatereports_bucketname,
+        account_name: env.cloud_private_storage_accountname,
+        account_key: env.cloud_private_storage_secret,
         sasExpiryTime: env.sunbird_report_sas_expiry_in_minutes || 60 // in minutes
     },
     GCLOUD: {
         project_id: env.sunbird_gcloud_project_id,
-        bucket_name: env.sunbird_gcloud_bucket_name || 'reports',
-        client_email: env.sunbird_gcloud_client_email || 'email.com',
-        private_key: env.sunbird_gcloud_private_key?.replace(/\\n/g, '\n'),
+        bucket_name: env.cloud_storage_privatereports_bucketname || 'reports',
+        client_email: env.cloud_private_storage_accountname || 'email.com',
+        private_key: env.cloud_private_storage_secret ? env.cloud_private_storage_secret.replace(/\\n/g, '\n') : '',
         signed_url_expiry: env.sunbird_report_signed_url_expiry_in_minutes || 60 // in minutes
     },
-    CLOUD_STORAGE_PROVIDER: env.SUNBIRD_CLOUD_STORAGE_PROVIDER || 'azure', // 'azure' or 'gcloud'
+    CLOUD_STORAGE_PROVIDER: env.sunbird_cloud_storage_provider || 'azure', // 'azure' or 'gcloud'
     UPSTREAM: {
         LEARNER: env.sunbird_learner_player_url,
         CONTENT_PROXY: env.sunbird_content_proxy_url,

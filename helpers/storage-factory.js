@@ -1,7 +1,7 @@
 const { envVariables } = require('./envHelpers');
 
 const getStorageProvider = () => {
-    const provider = envVariables.CLOUD_STORAGE_PROVIDER || 'azure'; // default to azure for backward compatibility
+    const provider = envVariables.sunbird_cloud_storage_provider || 'azure'; // default to azure for backward compatibility
     
     switch (provider.toLowerCase()) {
         case 'gcloud':

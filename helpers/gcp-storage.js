@@ -38,9 +38,10 @@ const checkIfBlobExists = ({ container = bucket_name, filePath }) => {
                 return;
             }
             
+            const [metadata] = await file.getMetadata();
             resolve({
                 exists: true,
-                lastModified: file.metadata?.updated
+                lastModified: metadata ? metadata.updated : null
             });
         } catch (error) {
             reject({
@@ -70,7 +71,7 @@ const getSharedAccessSignature = ({ container = bucket_name, filePath, headers =
                 expires: Date.now() + (expiryTime * 60 * 1000) // Convert minutes to milliseconds
             };
 
-            if (('filename' in headers) && ('content-disposition' in headers) && (headers['content-disposition'] === 'attachment')) {
+            if (headers && 'filename' in headers && 'content-disposition' in headers && headers['content-disposition'] === 'attachment') {
                 options.responseDisposition = `attachment;filename=${headers.filename}`;
             }
 
