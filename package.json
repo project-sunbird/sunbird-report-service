@@ -19,16 +19,15 @@
   "author": "ravinder kumar",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.8.2",
     "axios-debug-log": "^0.8.4",
     "azure-storage": "^2.10.7",
     "cookie-parser": "~1.4.4",
     "cross-env": "^7.0.3",
     "debug": "~2.6.9",
-    "express": "~4.16.1",
+    "express": "^4.17.3",
     "express-promise-router": "^4.1.1",
     "http-errors": "~1.6.3",
-    "jade": "~1.11.0",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
@@ -37,7 +36,7 @@
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
     "sb_api_interceptor": "file:libs/sb_api_interceptor",
-    "sequelize": "^6.19.0",
+    "sequelize": "^6.29.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
