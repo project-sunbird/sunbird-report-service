@@ -1,7 +1,6 @@
 'use strict';
 const { Model, fn, UUIDV4 } = require('sequelize');
 
-
 module.exports = (sequelize, DataTypes) => {
   class report_summary extends Model {
     /**
@@ -10,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.belongsTo(models.report, { foreignKey: 'reportid' })
+      this.belongsTo(models.report, { foreignKey: 'reportid' });
     }
   }
   report_summary.init({
@@ -18,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       primaryKey: true,
-      defaultValue: UUIDV4
+      defaultValue: UUIDV4,
     },
     reportid: {
       type: DataTypes.STRING,
@@ -31,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
     createdon: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: fn('now')
+      defaultValue: fn('now'),
     },
     createdby: {
       type: DataTypes.STRING,
@@ -44,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
     param_hash: {
       type: DataTypes.TEXT,
       allowNull: true,
-    }
+    },
   }, {
     sequelize,
     modelName: 'report_summary',

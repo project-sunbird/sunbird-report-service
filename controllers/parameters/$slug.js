@@ -1,29 +1,29 @@
 const _ = require('lodash');
-var debug = require('debug')('parameters:$slug');
+const debug = require('debug')('parameters:$slug');
 
-const { orgSearch } = require("../../helpers/orgHelper");
+const { orgSearch } = require('../../helpers/orgHelper');
 
 module.exports = {
-    name: '$slug',
-    value: (user) => _.get(user, 'rootOrg.slug'),
-    cache: true,
-    async masterData({ user, req }) {
-        try {
-            const body = {
-                "request": {
-                    "filters": {
-                        "isRootOrg": true,
-                        "status": 1
-                    },
-                    "fields": ["id", "channel", "slug", "orgName"]
-                }
-            };
-            const response = await orgSearch({ body });
-            const result = response.data;
-            return _.map(_.get(result, 'result.response.content') || [], 'slug');
-        } catch (error) {
-            debug(`$slug masterData fetch failed`, JSON.stringify(error));
-            return [];
-        }
+  name: '$slug',
+  value: (user) => _.get(user, 'rootOrg.slug'),
+  cache: true,
+  async masterData({ user, req }) {
+    try {
+      const body = {
+        'request': {
+          'filters': {
+            'isRootOrg': true,
+            'status': 1,
+          },
+          'fields': ['id', 'channel', 'slug', 'orgName'],
+        },
+      };
+      const response = await orgSearch({ body });
+      const result = response.data;
+      return _.map(_.get(result, 'result.response.content') || [], 'slug');
+    } catch (error) {
+      debug('$slug masterData fetch failed', JSON.stringify(error));
+      return [];
     }
-}
+  },
+};
