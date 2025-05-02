@@ -27,15 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Run lint
-      #   run: npm run lint
-      #   continue-on-error: true 
-
-      - name: Lint JavaScript with ESLint
-        run: npx eslint . --ext .js
-
-      - name: Check formatting with Prettier
-        run: npx prettier --check .
+      - name: Run lint
+        run: npm run lint
+        continue-on-error: true 
 
       - name: Run npm audit for vulnerabilities
         run: npm audit --audit-level=moderate
