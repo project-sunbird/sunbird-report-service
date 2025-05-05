@@ -19,12 +19,12 @@ isMatch function validates the given payload against the user context data and r
 const rules = new Map();
 
 ((folderPath) => {
-    fs.readdirSync(folderPath)
-        .filter(file => file !== basename)
-        .forEach(file => {
-            const { ruleName, isMatch } = require(path.join(folderPath, file));
-            rules.set(ruleName, isMatch);
-        })
+  fs.readdirSync(folderPath)
+    .filter(file => file !== basename)
+    .forEach(file => {
+      const { ruleName, isMatch } = require(path.join(folderPath, file));
+      rules.set(ruleName, isMatch);
+    });
 })(__dirname);
 
 //check if the user is the creator of the report or not.
@@ -35,29 +35,29 @@ const isCreatorOfReport = ({ user, report }) => _.get(report, 'createdby') === (
  * @param {*} user
  */
 const validateAccessPath = user => report => {
-    let { accesspath, type } = report;
+  let { accesspath, type } = report;
 
-    if (type === CONSTANTS.REPORT_TYPE.PUBLIC) return true;
+  if (type === CONSTANTS.REPORT_TYPE.PUBLIC) return true;
 
-    if (type === CONSTANTS.REPORT_TYPE.PROTECTED) {
-        if (!accesspath) return false;
-        if (typeof accesspath !== 'object') return false;
-    }
+  if (type === CONSTANTS.REPORT_TYPE.PROTECTED) {
+    if (!accesspath) return false;
+    if (typeof accesspath !== 'object') return false;
+  }
 
-    if (type === CONSTANTS.REPORT_TYPE.PRIVATE && !accesspath) {
-        // if report is private then it should be accessible only by the creator of the report.
-        accesspath = accessPathForPrivateReports({ user });
-    }
+  if (type === CONSTANTS.REPORT_TYPE.PRIVATE && !accesspath) {
+    // if report is private then it should be accessible only by the creator of the report.
+    accesspath = accessPathForPrivateReports({ user });
+  }
 
-    for (let [key, value] of Object.entries(accesspath)) {
-        if (!rules.has(key)) return false;
-        const validator = rules.get(key);
-        const success = validator(user, value);
-        if (!success) return false;
-    }
+  for (let [key, value] of Object.entries(accesspath)) {
+    if (!rules.has(key)) return false;
+    const validator = rules.get(key);
+    const success = validator(user, value);
+    if (!success) return false;
+  }
 
-    return true;
-}
+  return true;
+};
 
 /**
  * @description func used when access path is sent in the filters for search query. Used to filter out the reports
@@ -65,24 +65,24 @@ const validateAccessPath = user => report => {
  * @return {*} 
  */
 const matchAccessPath = accessPathSearchPayload => {
-    const accessPathSearchPayloadIterable = Object.entries(accessPathSearchPayload);
+  const accessPathSearchPayloadIterable = Object.entries(accessPathSearchPayload);
 
-    return report => {
-        const { accesspath: reportAccessPath } = report;
-        if (!reportAccessPath) return false;
+  return report => {
+    const { accesspath: reportAccessPath } = report;
+    if (!reportAccessPath) return false;
 
-        for (let [ruleName, value] of accessPathSearchPayloadIterable) {
-            value = Array.isArray(value) ? value : [value];
+    for (let [ruleName, value] of accessPathSearchPayloadIterable) {
+      value = Array.isArray(value) ? value : [value];
 
-            if (!(ruleName in reportAccessPath)) return false;
+      if (!(ruleName in reportAccessPath)) return false;
 
-            let ruleValue = reportAccessPath[ruleName];
-            ruleValue = Array.isArray(ruleValue) ? ruleValue : [ruleValue];
-            if (_.intersection(ruleValue, value).length === 0) return false;
-        }
-        return true;
+      let ruleValue = reportAccessPath[ruleName];
+      ruleValue = Array.isArray(ruleValue) ? ruleValue : [ruleValue];
+      if (_.intersection(ruleValue, value).length === 0) return false;
     }
-}
+    return true;
+  };
+};
 
 /**
  * @description private reports should should have accesspath set as userId of the creator
@@ -90,10 +90,10 @@ const matchAccessPath = accessPathSearchPayload => {
  * @return {*} 
  */
 const accessPathForPrivateReports = ({ user }) => {
-    if (user) {
-        return { userId: _.get(user, 'identifier') || _.get(user, 'id') }
-    }
-    return null;
+  if (user) {
+    return { userId: _.get(user, 'identifier') || _.get(user, 'id') };
+  }
+  return null;
 };
 
 /**
@@ -102,16 +102,16 @@ const accessPathForPrivateReports = ({ user }) => {
  * @return {*} 
  */
 const roleBasedAccess = ({ report, user }) => {
-    if (!user) return false;
-    const { status } = report;
-    if ([CONSTANTS.REPORT_STATUS.DRAFT, CONSTANTS.REPORT_STATUS.RETIRED].includes(status)) {
-        if (!isUserAdmin(user)) {
-            return false;
-        }
+  if (!user) return false;
+  const { status } = report;
+  if ([CONSTANTS.REPORT_STATUS.DRAFT, CONSTANTS.REPORT_STATUS.RETIRED].includes(status)) {
+    if (!isUserAdmin(user)) {
+      return false;
     }
+  }
 
-    return true;
-}
+  return true;
+};
 
-module.exports = { validateAccessPath, matchAccessPath, accessPathForPrivateReports, isCreatorOfReport, roleBasedAccess }
+module.exports = { validateAccessPath, matchAccessPath, accessPathForPrivateReports, isCreatorOfReport, roleBasedAccess };
 

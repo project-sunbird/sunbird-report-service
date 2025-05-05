@@ -1,44 +1,44 @@
 const axios = require('axios');
 require('axios-debug-log/enable');
 
-const { envVariables: { UPSTREAM, PORTAL_API_AUTH_TOKEN } } = require('./envHelpers')
+const { envVariables: { UPSTREAM, PORTAL_API_AUTH_TOKEN } } = require('./envHelpers');
 
 const commonHeaders = {
-    'Authorization': `Bearer ${PORTAL_API_AUTH_TOKEN}`,
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-}
+  'Authorization': `Bearer ${PORTAL_API_AUTH_TOKEN}`,
+  'Accept': 'application/json',
+  'Content-Type': 'application/json'
+};
 
 const successCallback = function (config) {
-    config.headers = { ...config.headers, ...commonHeaders };
-    return config;
-}
+  config.headers = { ...config.headers, ...commonHeaders };
+  return config;
+};
 
 const errorCallback = function (error) {
-    return Promise.reject(error);
-}
+  return Promise.reject(error);
+};
 
 /*
     UPSTREAM INSTANCES
 */
 const learnerUpstream = axios.create({
-    baseURL: UPSTREAM.LEARNER
+  baseURL: UPSTREAM.LEARNER
 });
 learnerUpstream.interceptors.request.use(successCallback, errorCallback);
 
 const contentProxyUpstream = axios.create({
-    baseURL: UPSTREAM.CONTENT_PROXY
+  baseURL: UPSTREAM.CONTENT_PROXY
 });
 contentProxyUpstream.interceptors.request.use(successCallback, errorCallback);
 
 const dataServiceProxyUpstream = axios.create({
-    baseURL: UPSTREAM.DATA_SERVICE
+  baseURL: UPSTREAM.DATA_SERVICE
 });
 dataServiceProxyUpstream.interceptors.request.use(successCallback, errorCallback);
 
 
 module.exports = {
-    learnerUpstream,
-    contentProxyUpstream,
-    dataServiceProxyUpstream
-}
+  learnerUpstream,
+  contentProxyUpstream,
+  dataServiceProxyUpstream
+};

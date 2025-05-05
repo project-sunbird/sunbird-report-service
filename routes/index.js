@@ -4,7 +4,7 @@ const errorHandler = require('../middleware/utils/errorHandler');
 
 module.exports = app => {
 
-  app.use(`/report`, reportRouter);
+  app.use('/report', reportRouter);
 
   // catch 404 and forward to error handler
   app.use(function (req, res, next) {
@@ -13,4 +13,4 @@ module.exports = app => {
 
   //global error handler
   app.use(errorHandler());
-}
+};
