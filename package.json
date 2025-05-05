@@ -4,9 +4,7 @@
   "scripts": {
     "start": "cross-env DEBUG=* node ./bin/www",
     "dev": "cross-env NODE_ENV=development DEBUG=* nodemon ./bin/www",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
     "node": ">=7.8.0"
@@ -21,7 +19,7 @@
   "author": "ravinder kumar",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.8.2",
     "axios-debug-log": "^0.8.4",
     "azure-storage": "^2.10.7",
     "cookie-parser": "~1.4.4",
@@ -42,7 +40,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "eslint": "^8.57.1",
     "nodemon": "^2.0.16",
     "sequelize-cli": "^6.4.1"
   }
