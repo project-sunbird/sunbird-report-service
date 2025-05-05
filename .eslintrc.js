@@ -8,6 +8,7 @@ module.exports = {
   },
   rules: {
     'no-console': 'warn',
+    'no-debugger': 'error',
     'no-unused-vars': 'warn',
     'semi': ['error', 'always'],
     'quotes': ['error', 'single'],
