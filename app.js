@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 var debug = require('debug')('report-service:server');
 
-const mountRoutes = require('./routes')
+const mountRoutes = require('./routes');
 const app = express();
 const { sequelize } = require('./models');
 const { printEnvVariablesStatus } = require('./helpers/envHelpers');
@@ -17,16 +17,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //connect to the database and mount routes
 (async () => {
-    try {
-        printEnvVariablesStatus();
-        await sequelize.authenticate();
-        // await sequelize.sync();
-        debug('Connected to the database');
-        mountRoutes(app);
-    } catch (error) {
-        debug('Unable to connect to database', error);
-        process.exit(1);
-    }
-})()
+  try {
+    printEnvVariablesStatus();
+    await sequelize.authenticate();
+    // await sequelize.sync();
+    debug('Connected to the database');
+    mountRoutes(app);
+  } catch (error) {
+    debug('Unable to connect to database', error);
+    process.exit(1);
+  }
+})();
 
 module.exports = app;

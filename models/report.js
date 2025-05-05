@@ -113,19 +113,19 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.JSONB
     }
   },
-    {
-      sequelize,
-      modelName: 'report',
-      tableName: 'report',
-      timestamps: false,
-      hooks: {
-        beforeValidate(report, options) {
-          report.reportaccessurl = `${envVariables.ENV}/dashBoard/reports/${report.reportid}`;
-        },
-        beforeUpdate(report, options) {
-          report.updatedon = Date.now();
-        }
+  {
+    sequelize,
+    modelName: 'report',
+    tableName: 'report',
+    timestamps: false,
+    hooks: {
+      beforeValidate(report, options) {
+        report.reportaccessurl = `${envVariables.ENV}/dashBoard/reports/${report.reportid}`;
+      },
+      beforeUpdate(report, options) {
+        report.updatedon = Date.now();
       }
-    });
+    }
+  });
   return report;
 };
