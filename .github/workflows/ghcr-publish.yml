@@ -30,11 +30,11 @@ jobs:
 
       - name: Prepare Docker image name and tag
         run: |
-          REPO_LC=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          REPO_NAME_LOWERCASE=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
           TAG_NAME=$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]')
           BUILD_TAG="${TAG_NAME}_${{ steps.vars.outputs.commit_hash }}_${GITHUB_RUN_NUMBER}"
 
-          echo "IMAGE_NAME=ghcr.io/${REPO_LC}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=ghcr.io/${REPO_NAME_LOWERCASE}" >> $GITHUB_ENV
           echo "IMAGE_TAG=${BUILD_TAG}" >> $GITHUB_ENV
 
       - name: Build Docker image
