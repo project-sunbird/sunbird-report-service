@@ -1,5 +1,94 @@
 # sunbird-report-service
 
+Repository: https://github.com/project-sunbird/sunbird-report-service
+
+## Development Setup
+
+### Prerequisites
+- Node.js v22.15
+- PostgreSQL database
+
+### Local Development
+To set up the project locally:
+
+1. Fork the repository on GitHub
+
+2. Clone your fork:
+```bash
+git clone https://github.com/your-username/sunbird-report-service.git
+cd sunbird-report-service
+```
+
+3. Install dependencies:
+```bash
+npm i
+```
+
+4. Configure PostgreSQL:
+   - Create a database named `root`
+   - Set username to `root`
+   - Set password to `root`
+   - Ensure PostgreSQL is running on localhost
+
+5. Create database tables using the SQL commands in [resources/queries.sql](resources/queries.sql)
+
+6. Run lint checks:
+```bash
+npm run lint
+```
+
+7. Fix linting errors:
+```bash
+npm run lint:fix
+```
+
+8. Start the service:
+```bash
+npm start
+```
+
+The service will be available at `http://localhost:3030`
+
+### Code Quality
+The repository has automated code quality checks that run on every pull request. These checks include:
+
+1. **Linting**
+   - Uses ESLint for code style and quality checks
+   - Command: `npm run lint`
+   - Enforces consistent code style and catches potential errors
+
+2. **Dependency Management**
+   - Uses `npm ci` for deterministic dependency installation
+   - Ensures consistent dependency tree across all environments
+   - Verifies package-lock.json integrity
+
+3. **Node Modules Caching**
+   - Uses GitHub Actions cache to speed up builds
+   - Cache key is based on package-lock.json hash
+   - Cache is restored if package-lock.json hasn't changed
+   - Cache is saved if a new installation is required
+
+4. **Code Formatting**
+   - Ensures consistent code formatting
+   - Can be automatically fixed using `npm run lint:fix`
+
+The checks are configured to run on all branches and are enforced before merging any pull requests. The workflow uses GitHub Actions with the following key features:
+
+- Uses Node.js v22.15
+- Caches node_modules to speed up subsequent builds
+- Uses npm ci for deterministic installations
+- Runs lint checks to ensure code quality
+
+## Database Configuration
+The service uses PostgreSQL with the following configuration:
+- Host: localhost (127.0.0.1)
+- Database: root
+- Username: root
+- Password: root
+- Port: 5432 (default PostgreSQL port)
+
+For production environments, database configuration can be overridden using environment variables as specified in [envHelpers.js](helpers/envHelpers.js).
+
 ## Container Image Publishing
 
 This repository uses GitHub Actions to automatically build and publish Docker container images to GitHub Container Registry (GHCR) whenever a new tag is pushed to the repository.
