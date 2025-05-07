@@ -25,24 +25,12 @@ npm i
 ```
 
 4. Configure PostgreSQL:
-   - Create a database named `root`
-   - Set username to `root`
-   - Set password to `root`
-   - Ensure PostgreSQL is running on localhost
+   - Configure the database settings
+   - Refer to [config/config.json](config/config.json) for database configuration details
 
 5. Create database tables using the SQL commands in [resources/queries.sql](resources/queries.sql)
 
-6. Run lint checks:
-```bash
-npm run lint
-```
-
-7. Fix linting errors:
-```bash
-npm run lint:fix
-```
-
-8. Start the service:
+6. Start the service:
 ```bash
 npm start
 ```
@@ -50,44 +38,22 @@ npm start
 The service will be available at `http://localhost:3030`
 
 ### Code Quality
-The repository has automated code quality checks that run on every pull request. These checks include:
+
+The project maintains code quality through automated checks that run on every pull request:
 
 1. **Linting**
-   - Uses ESLint for code style and quality checks
+   - ESLint for code style and quality
    - Command: `npm run lint`
-   - Enforces consistent code style and catches potential errors
 
-2. **Dependency Management**
-   - Uses `npm ci` for deterministic dependency installation
-   - Ensures consistent dependency tree across all environments
-   - Verifies package-lock.json integrity
+2. **Dependencies**
+   - Uses `npm ci` for deterministic installations
+   - GitHub Actions cache for faster builds
 
-3. **Node Modules Caching**
-   - Uses GitHub Actions cache to speed up builds
-   - Cache key is based on package-lock.json hash
-   - Cache is restored if package-lock.json hasn't changed
-   - Cache is saved if a new installation is required
-
-4. **Code Formatting**
+3. **Code Formatting**
    - Ensures consistent code formatting
    - Can be automatically fixed using `npm run lint:fix`
 
-The checks are configured to run on all branches and are enforced before merging any pull requests. The workflow uses GitHub Actions with the following key features:
-
-- Uses Node.js v22.15
-- Caches node_modules to speed up subsequent builds
-- Uses npm ci for deterministic installations
-- Runs lint checks to ensure code quality
-
-## Database Configuration
-The service uses PostgreSQL with the following configuration:
-- Host: localhost (127.0.0.1)
-- Database: root
-- Username: root
-- Password: root
-- Port: 5432 (default PostgreSQL port)
-
-For production environments, database configuration can be overridden using environment variables as specified in [envHelpers.js](helpers/envHelpers.js).
+These checks ensure consistent code style and secure dependency management.
 
 ## Container Image Publishing
 
@@ -104,7 +70,7 @@ Key features of the workflow:
    - The tag name (lowercased)
    - Short commit hash
    - GitHub run number
-3. Publishes images to `ghcr.io` using the repository name (lowercased)
+3. Publishes images to `ghcr.io` using the repository name
 4. Uses GitHub Actions for secure authentication to GHCR
 
 ### Image Naming Convention
@@ -117,12 +83,6 @@ For example, if you push a tag `v1.0.0` on commit `abc123`, the resulting image 
 ghcr.io/project-sunbird/sunbird-report-service:v1.0.0_abc123_1
 ```
 
-### Security
-- Uses GitHub's built-in authentication system
-- Requires `GITHUB_TOKEN` for registry access
-- Has read-only access to repository contents
-- Has write access to packages (for publishing)
-
 ### Environment Variables
 
 For a complete list of available environment variables and their default values, please refer to the [envHelpers.js](helpers/envHelpers.js) file. 
@@ -130,8 +90,9 @@ For a complete list of available environment variables and their default values,
 You can configure these variables while creating the container:
 1. By passing them directly when creating the container (as shown in the usage example below)
 
-### Usage
-To use the published container image:
+### Testing the Container Image
+
+To test the published container image:
 
 1. First create a network:
 ```bash
