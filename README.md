@@ -109,12 +109,12 @@ Key features of the workflow:
 
 ### Image Naming Convention
 The Docker images follow this naming convention:
-- Repository: `ghcr.io/${REPO_NAME_LOWERCASE}`
+- Repository: `ghcr.io/${OWNER_NAME}/${REPO_NAME_LOWERCASE}`
 - Tag: `${TAG_NAME}_${COMMIT_HASH}_${RUN_NUMBER}`
 
 For example, if you push a tag `v1.0.0` on commit `abc123`, the resulting image would be:
 ```
-ghcr.io/sunbird-report-service:v1.0.0_abc123_1
+ghcr.io/project-sunbird/sunbird-report-service:v1.0.0_abc123_1
 ```
 
 ### Security
@@ -163,7 +163,7 @@ docker run --name sunbird-report-service \
   -e sunbird_azure_account_name='your-account-name' \
   -e sunbird_azure_account_key='your-account-key' \
   -e sunbird_azure_sas_expiry_in_minutes='your-sas-expiry-in-minutes' \
-  ghcr.io/sunbird-report-service:${TAG_NAME}
+  ghcr.io/${OWNER_NAME}/sunbird-report-service:${TAG_NAME}
 ```
 
 Important notes:
