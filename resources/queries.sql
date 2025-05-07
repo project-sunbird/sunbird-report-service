@@ -16,4 +16,4 @@ ALTER TABLE report ADD COLUMN IF NOT EXISTS accesspath jsonb;
 
 ALTER TABLE report DROP CONSTRAINT "report_type_check";
 
-ALTER TABLE report ADD CONSTRAINT "report_type_check" CHECK (type in ('public', 'private', 'protected'));ƒ
+ALTER TABLE report ADD CONSTRAINT "report_type_check" CHECK (type in ('public', 'private', 'protected'));
