@@ -159,10 +159,12 @@ docker run --name sunbird-report-service \
   -e SUNBIRD_REPORTS_DB_PORT=5432 \
   -e SUNBIRD_REPORTS_DB_USER=root \
   -e SUNBIRD_SERVER_PORT=3030 \
+  -e sunbird_portal_auth_server_url="your_auth_server_url" \
   -e sunbird_azure_report_container_name='your-container-name' \
   -e sunbird_azure_account_name='your-account-name' \
   -e sunbird_azure_account_key='your-account-key' \
   -e sunbird_azure_sas_expiry_in_minutes='your-sas-expiry-in-minutes' \
+  -p 3030:3030 \
   ghcr.io/${OWNER_NAME}/sunbird-report-service:${TAG_NAME}
 ```
 
