@@ -8,7 +8,7 @@ const { report, report_status, report_summary } = require('../models');
 const CONSTANTS = require('../resources/constants.json');
 const { formatApiResponse } = require('../helpers/responseFormatter');
 const { validateAccessPath, matchAccessPath, accessPathForPrivateReports, isCreatorOfReport, roleBasedAccess } = require('./accessPaths');
-const { getDatasets, isReportParameterized, populateReportsWithParameters } = require('./parameters');
+const { getDatasets, isReportParameterized, populateReportsWithParameters, setFrameworkCategoryParameters } = require('./parameters');
 const { fetchAndFormatExhaustDataset } = require('../helpers/dataServiceHelper');
 
 // checks by reportid if the report exists in our database or not
@@ -38,6 +38,7 @@ const search = async (req, res, next) => {
     });
 
     const userDetails = req.userDetails;
+    await setFrameworkCategoryParameters(req, userDetails);
     const documents = populateReportsWithParameters(rows, userDetails);
 
     //is accesspath is provided as search filter create a closure to filter reports
@@ -76,7 +77,7 @@ const search = async (req, res, next) => {
         if (!type) return false;
         if (type === CONSTANTS.REPORT_TYPE.PUBLIC) return true;
         if ((type === CONSTANTS.REPORT_TYPE.PRIVATE) || (type === CONSTANTS.REPORT_TYPE.PROTECTED)) {
-          return validateAccessPath(userDetails)(row);
+          return validateAccessPath(userDetails, req)(row);
         }
       });
     }
@@ -229,6 +230,7 @@ const read = async (req, res, next) => {
     const userDetails = req.userDetails;
     let document;
     if (!hash) {
+      await setFrameworkCategoryParameters(req, userDetails);
       [document] = populateReportsWithParameters([rawDocument], userDetails);
       if (!document) return next(createError(401, CONSTANTS.MESSAGES.FORBIDDEN));
     } else {
@@ -246,7 +248,7 @@ const read = async (req, res, next) => {
         }
 
         if ((type === CONSTANTS.REPORT_TYPE.PROTECTED) || (type === CONSTANTS.REPORT_TYPE.PRIVATE)) {
-          const isAuthorized = validateAccessPath(userDetails)(document);
+          const isAuthorized = validateAccessPath(userDetails, req)(document);
           if (!isAuthorized) {
             return next(createError(401, CONSTANTS.MESSAGES.FORBIDDEN));
           }
@@ -528,6 +530,7 @@ const readWithDatasets = async (req, res, next) => {
     const user = req.userDetails;
     let document;
     if (!hash) {
+      await setFrameworkCategoryParameters(req, userDetails);
       [document] = populateReportsWithParameters([rawDocument], user);
       if (!document) return next(createError(401, CONSTANTS.MESSAGES.FORBIDDEN));
     } else {
@@ -545,7 +548,7 @@ const readWithDatasets = async (req, res, next) => {
         }
 
         if ((document.type === CONSTANTS.REPORT_TYPE.PRIVATE) || (document.type === CONSTANTS.REPORT_TYPE.PROTECTED)) {
-          const isAuthorized = validateAccessPath(user)(document);
+          const isAuthorized = validateAccessPath(user, req)(document);
           if (!isAuthorized) {
             return next(createError(401, CONSTANTS.MESSAGES.FORBIDDEN));
           }
