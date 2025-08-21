@@ -2,7 +2,7 @@
 const { get } = require('lodash');
 const env = get(process, 'env');
 const fs = require('fs');
-var debug = require('debug')('parameters:$board');
+var debug = require('debug')
 
 const packageObj = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
