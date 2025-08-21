@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
+const dynamicCategoryManager = require('./dynamicCategoryManager');
 
 const CONSTANTS = require('../../resources/constants.json');
 const { isUserAdmin } = require('../../helpers/userHelper');
@@ -34,7 +35,7 @@ const isCreatorOfReport = ({ user, report }) => _.get(report, 'createdby') === (
  * @description Validates a user context against the accesspath rules set for the report
  * @param {*} user
  */
-const validateAccessPath = user => report => {
+const validateAccessPath = (user, req) => async report => {
   let { accesspath, type } = report;
 
   if (type === CONSTANTS.REPORT_TYPE.PUBLIC) return true;
@@ -49,11 +50,36 @@ const validateAccessPath = user => report => {
     accesspath = accessPathForPrivateReports({ user });
   }
 
+  const channelId = req.get('x-channel-id') ||
+    req.get('X-CHANNEL-ID') ||
+    _.get(user, 'rootOrg.hashTagId') ||
+    _.get(user, 'channel');
+  if (!channelId) return false;
+
+  const dynamicCategories = await dynamicCategoryManager.getCategoriesForChannel(channelId);
+
   for (let [key, value] of Object.entries(accesspath)) {
-    if (!rules.has(key)) return false;
-    const validator = rules.get(key);
-    const success = validator(user, value);
-    if (!success) return false;
+    if (rules.has(key)) {
+      const validator = rules.get(key);
+      const success = validator(user, value);
+      if (!success) return false;
+    }
+    else if (dynamicCategories.includes(key)) {
+      const normalizedValue = Array.isArray(value) ? value : [value];
+      const userValues = _.get(user, `framework.${key}`, []);
+      const normalizedUserValues = Array.isArray(userValues) ? userValues : [userValues];
+
+      const hasMatch = normalizedValue.some(val =>
+        normalizedUserValues.some(uv =>
+          String(uv).toLowerCase() === String(val).toLowerCase()
+        )
+      );
+
+      if (!hasMatch) return false;
+    }
+    else {
+      return false;
+    }
   }
 
   return true;
