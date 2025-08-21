@@ -8,6 +8,7 @@ const { getSharedAccessSignature } = require('../../helpers/azure-storage');
 const { envVariables } = require('../../helpers/envHelpers');
 const { isUserSuperAdmin } = require('../../helpers/userHelper');
 const CONSTANTS = require('../../resources/constants.json');
+const { channelRead, frameworkRead } = require('../../helpers/learnerHelper');
 
 /*
 
@@ -204,4 +205,49 @@ const getDatasets = async ({ document, user, req }) => {
   return Promise.all(dataSources.map(dataSource => getDataset({ dataSource, user, req })));
 };
 
-module.exports = { populateReportsWithParameters, getDatasets, reportParameters: parameters, isReportParameterized };
+const setFrameworkCategoryParameters = async (req, user) => {
+  console.log('inside setFrameworkCategoryParameters');
+  const channelId =
+    req.get('x-channel-id') ||
+    req.get('X-CHANNEL-ID') ||
+    _.get(user, 'rootOrg.hashTagId') ||
+    _.get(user, 'channel');
+
+  if (!channelId) return;
+
+  try {
+    const channelReadResponse = await channelRead({ channelId });
+    const frameworkName = _.get(channelReadResponse, 'data.result.channel.defaultFramework');
+    if (!frameworkName) throw new Error('default framework missing');
+
+    const frameworkReadResponse = await frameworkRead({ frameworkId: frameworkName });
+    const frameworkData = _.get(frameworkReadResponse, 'data.result.framework');
+    const frameworkCategories = _.map(frameworkData.categories, 'code');
+
+    frameworkCategories.forEach(category => {
+      parameters[`$${category}`] = {
+        name: `$${category}`,
+        value: (user) => _.get(user, `framework.${category}`),
+        cache: false,
+        masterData: () => {
+          const categoryData = _.find(frameworkData.categories, ['code', category]);
+          return _.map(_.get(categoryData, 'terms', []), 'name');
+        }
+      };
+    });
+
+    Object.values(parameters).forEach(param => {
+      console.log('param.name', param.name);
+    });
+  } catch (error) {
+    debug(`Failed to set framework category parameters for channel ${channelId}`, error);
+  }
+};
+
+module.exports = { 
+  populateReportsWithParameters, 
+  getDatasets, 
+  reportParameters: parameters, 
+  isReportParameterized,
+  setFrameworkCategoryParameters 
+};
