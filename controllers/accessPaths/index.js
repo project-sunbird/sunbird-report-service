@@ -54,17 +54,20 @@ const validateAccessPath = (user, req) => async report => {
     req.get('X-CHANNEL-ID') ||
     _.get(user, 'rootOrg.hashTagId') ||
     _.get(user, 'channel');
-  if (!channelId) return false;
-
+  if (!channelId) {
+    const error = new Error('Channel ID is required');
+    error.statusCode = 400;
+    error.errorObject = { code: 'MISSING_CHANNEL_ID' };
+    throw error;
+  }
   const dynamicCategories = await dynamicCategoryManager.getCategoriesForChannel(channelId);
 
   for (let [key, value] of Object.entries(accesspath)) {
     if (rules.has(key)) {
       const validator = rules.get(key);
       const success = validator(user, value);
-      if (!success) return false;
     }
-    else if (dynamicCategories.includes(key)) {
+    if (dynamicCategories.includes(key)) {
       const normalizedValue = Array.isArray(value) ? value : [value];
       const userValues = _.get(user, `framework.${key}`, []);
       const normalizedUserValues = Array.isArray(userValues) ? userValues : [userValues];

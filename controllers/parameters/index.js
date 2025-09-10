@@ -213,14 +213,24 @@ const setFrameworkCategoryParameters = async (req, user) => {
     _.get(user, 'rootOrg.hashTagId') ||
     _.get(user, 'channel');
 
-  if (!channelId) return;
+  if (!channelId) {
+    const error = new Error('Channel ID is required');
+    error.statusCode = 400;
+    error.errorObject = { code: 'MISSING_CHANNEL_ID' };
+    throw error;
+  }
 
   try {
     const channelReadResponse = await channelRead({ channelId });
     const frameworkName = _.get(channelReadResponse, 'data.result.channel.defaultFramework');
-    if (!frameworkName) throw new Error('default framework missing');
+    if (!frameworkName) {
+      const error = new Error('Default framework not found for the channel');
+      error.statusCode = 404;
+      error.errorObject = { code: 'MISSING_DEFAULT_FRAMEWORK' };
+      throw error;
+    }
 
-    const frameworkReadResponse = await frameworkRead({ frameworkId: frameworkName });
+    const frameworkReadResponse = await frameworkRead({ frameworkId: "FMPS" });
     const frameworkData = _.get(frameworkReadResponse, 'data.result.framework');
     const frameworkCategories = _.map(frameworkData.categories, 'code');
 

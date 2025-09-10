@@ -62,24 +62,40 @@ const search = async (req, res, next) => {
             2- is user report admin or not.
             3 - check access path for private and protected reports.
             */
-      filteredReports = _.filter(documents, row => {
+      // Process all documents in parallel to check access
+      const reportAccessChecks = await Promise.all(documents.map(async row => {
         const isCreator = isCreatorOfReport({ user: userDetails, report: row });
-        if (isCreator) return true;
+        if (isCreator) return { row, hasAccess: true };
 
-        if (!roleBasedAccess({ report: row, user: userDetails })) return false;
+        if (!roleBasedAccess({ report: row, user: userDetails })) {
+          return { row, hasAccess: false };
+        }
 
         if (accessPathMatchClosure) {
           const isMatched = accessPathMatchClosure(row);
-          if (!isMatched) return false;
+          if (!isMatched) return { row, hasAccess: false };
         }
 
         const { type } = row;
-        if (!type) return false;
-        if (type === CONSTANTS.REPORT_TYPE.PUBLIC) return true;
-        if ((type === CONSTANTS.REPORT_TYPE.PRIVATE) || (type === CONSTANTS.REPORT_TYPE.PROTECTED)) {
-          return validateAccessPath(userDetails, req)(row);
+        if (!type) return { row, hasAccess: false };
+        if (type === CONSTANTS.REPORT_TYPE.PUBLIC) return { row, hasAccess: true };
+        
+        if (type === CONSTANTS.REPORT_TYPE.PRIVATE || type === CONSTANTS.REPORT_TYPE.PROTECTED) {
+          try {
+            const hasAccess = await validateAccessPath(userDetails, req)(row);
+            return { row, hasAccess };
+          } catch (error) {
+            debug('Error validating access path:', error);
+            return { row, hasAccess: false };
+          }
         }
-      });
+        
+        return { row, hasAccess: false };
+      }));
+
+      filteredReports = reportAccessChecks
+        .filter(({ hasAccess }) => hasAccess)
+        .map(({ row }) => row);
     }
     return res.status(200).json(formatApiResponse({ id: req.id, result: { reports: filteredReports, count: filteredReports.length } }));
   } catch (error) {
