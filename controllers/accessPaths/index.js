@@ -81,9 +81,6 @@ const validateAccessPath = (user, req) => async report => {
         if (!hasMatch) return false;
       }
     }
-    else {
-      return false;
-    }
   }
 
   return true;
