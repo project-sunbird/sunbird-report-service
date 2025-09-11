@@ -206,7 +206,6 @@ const getDatasets = async ({ document, user, req }) => {
 };
 
 const setFrameworkCategoryParameters = async (req, user) => {
-  console.log('inside setFrameworkCategoryParameters');
   const channelId =
     req.get('x-channel-id') ||
     req.get('X-CHANNEL-ID') ||
@@ -230,7 +229,7 @@ const setFrameworkCategoryParameters = async (req, user) => {
       throw error;
     }
 
-    const frameworkReadResponse = await frameworkRead({ frameworkId: "FMPS" });
+    const frameworkReadResponse = await frameworkRead({ frameworkId: frameworkName });
     const frameworkData = _.get(frameworkReadResponse, 'data.result.framework');
     const frameworkCategories = _.map(frameworkData.categories, 'code');
 
@@ -247,7 +246,6 @@ const setFrameworkCategoryParameters = async (req, user) => {
     });
 
     Object.values(parameters).forEach(param => {
-      console.log('param.name', param.name);
     });
   } catch (error) {
     debug(`Failed to set framework category parameters for channel ${channelId}`, error);
