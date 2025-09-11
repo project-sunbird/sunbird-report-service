@@ -66,19 +66,20 @@ const validateAccessPath = (user, req) => async report => {
     if (rules.has(key)) {
       const validator = rules.get(key);
       const success = validator(user, value);
-    }
-    if (dynamicCategories.includes(key)) {
-      const normalizedValue = Array.isArray(value) ? value : [value];
-      const userValues = _.get(user, `framework.${key}`, []);
-      const normalizedUserValues = Array.isArray(userValues) ? userValues : [userValues];
 
-      const hasMatch = normalizedValue.some(val =>
-        normalizedUserValues.some(uv =>
-          String(uv).toLowerCase() === String(val).toLowerCase()
-        )
-      );
+      if (!success && dynamicCategories.includes(key)) {
+        const normalizedValue = Array.isArray(value) ? value : [value];
+        const userValues = _.get(user, `framework.${key}`, []);
+        const normalizedUserValues = Array.isArray(userValues) ? userValues : [userValues];
 
-      if (!hasMatch) return false;
+        const hasMatch = normalizedValue.some(val =>
+          normalizedUserValues.some(uv =>
+            String(uv).toLowerCase() === String(val).toLowerCase()
+          )
+        );
+
+        if (!hasMatch) return false;
+      }
     }
     else {
       return false;
