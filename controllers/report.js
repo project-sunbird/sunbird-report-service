@@ -264,7 +264,7 @@ const read = async (req, res, next) => {
         }
 
         if ((type === CONSTANTS.REPORT_TYPE.PROTECTED) || (type === CONSTANTS.REPORT_TYPE.PRIVATE)) {
-          const isAuthorized = validateAccessPath(userDetails, req)(document);
+          const isAuthorized = await validateAccessPath(userDetails, req)(document);
           if (!isAuthorized) {
             return next(createError(401, CONSTANTS.MESSAGES.FORBIDDEN));
           }
@@ -564,7 +564,7 @@ const readWithDatasets = async (req, res, next) => {
         }
 
         if ((document.type === CONSTANTS.REPORT_TYPE.PRIVATE) || (document.type === CONSTANTS.REPORT_TYPE.PROTECTED)) {
-          const isAuthorized = validateAccessPath(user, req)(document);
+          const isAuthorized = await validateAccessPath(user, req)(document);
           if (!isAuthorized) {
             return next(createError(401, CONSTANTS.MESSAGES.FORBIDDEN));
           }
