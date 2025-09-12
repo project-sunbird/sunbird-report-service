@@ -3,7 +3,7 @@ var memoryCache = require('memory-cache');
 var debug = require('debug')('helpers:dataServiceHelper');
 
 
-const { reportParameters } = require('../controllers/parameters');
+const { reportParameters, setFrameworkCategoryParameters} = require('../controllers/parameters');
 const { envVariables } = require('./envHelpers');
 const { dataServiceProxyUpstream } = require('./upstream_axios');
 const { isUserSuperAdmin } = require('./userHelper');
@@ -46,6 +46,7 @@ const fetchAndFormatExhaustDataset = async ({ req, document, user }) => {
       [parameter] = parameters;
     }
 
+    await setFrameworkCategoryParameters(req, user);
     const isParameterized = parameter && (parameter in reportParameters);
     if (isParameterized) {
       const { masterData, cache = false, value } = reportParameters[parameter];
