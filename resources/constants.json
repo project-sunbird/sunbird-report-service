@@ -1,0 +1,30 @@
+{
+    "RESPONSE_CODE": {
+        "CLIENT_ERROR": "ClIENT_ERROR",
+        "SERVER_ERROR": "SERVER_ERROR",
+        "SUCCESS": "OK",
+        "FAILED": "FAILED",
+        "BAD_REQUEST": "BAD_REQUEST"
+    },
+    "STATUS": {
+        "FAILED": "failed",
+        "SUCCESS": "success"
+    },
+    "MESSAGES": {
+        "NO_REPORT": "Report not found",
+        "NO_COLUMNS_TO_UPDATE": "0 columns to update",
+        "NO_API": "No api exists with these value",
+        "RETIRE_FAILURE": "Failed to retire report",
+        "FORBIDDEN": "Unauthorized Access"
+    },
+    "REPORT_STATUS": {
+        "LIVE": "live",
+        "RETIRED": "retired",
+        "DRAFT": "draft"
+    },
+    "REPORT_TYPE": {
+        "PUBLIC": "public",
+        "PRIVATE": "private",
+        "PROTECTED": "protected"
+    }
+}

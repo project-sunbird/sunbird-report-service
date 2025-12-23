@@ -1,11 +1,12 @@
 {
   "name": "hawkeye-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "cross-env DEBUG=* node ./bin/www",
+    "dev": "cross-env NODE_ENV=development DEBUG=* nodemon ./bin/www",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "engines": {
     "node": ">=7.8.0"
@@ -20,16 +21,29 @@
   "author": "ravinder kumar",
   "license": "MIT",
   "dependencies": {
-    "@hapi/joi": "^17.1.1",
-    "body-parser": "^1.19.0",
-    "dateformat": "^3.0.3",
-    "express": "^4.17.1",
-    "express-promise-router": "^3.0.3",
-    "lodash": "^4.17.15",
-    "pg": "^8.0.0",
-    "uuid": "^7.0.3"
+    "axios": "^0.27.2",
+    "axios-debug-log": "^0.8.4",
+    "azure-storage": "^2.10.7",
+    "cookie-parser": "~1.4.4",
+    "cross-env": "^7.0.3",
+    "debug": "~2.6.9",
+    "express": "^4.17.3",
+    "express-promise-router": "^4.1.1",
+    "http-errors": "~1.6.3",
+    "joi": "^17.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "memory-cache": "^0.2.0",
+    "morgan": "~1.9.1",
+    "pg": "^8.7.3",
+    "pg-hstore": "^2.3.4",
+    "sb_api_interceptor": "file:libs/sb_api_interceptor",
+    "sequelize": "^6.29.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "eslint": "^6.8.0"
+    "eslint": "^8.57.1",
+    "nodemon": "^2.0.16",
+    "sequelize-cli": "^6.4.1"
   }
 }

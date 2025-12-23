@@ -1,0 +1,144 @@
+const fs = require('fs');
+const path = require('path');
+const _ = require('lodash');
+const dynamicCategoryManager = require('./dynamicCategoryManager');
+
+const CONSTANTS = require('../../resources/constants.json');
+const { isUserAdmin } = require('../../helpers/userHelper');
+
+const basename = path.basename(__filename);
+
+/* 
+Reads all the accessPath rule Files and building the config map
+Each Access path follows this interface
+
+ruleName: string
+isMatch: (user, payload) => boolean
+
+isMatch function validates the given payload against the user context data and return if it matches or not.
+*/
+const rules = new Map();
+
+((folderPath) => {
+  fs.readdirSync(folderPath)
+    .filter(file => file !== basename)
+    .forEach(file => {
+      const { ruleName, isMatch } = require(path.join(folderPath, file));
+      rules.set(ruleName, isMatch);
+    });
+})(__dirname);
+
+//check if the user is the creator of the report or not.
+const isCreatorOfReport = ({ user, report }) => _.get(report, 'createdby') === (_.get(user, 'identifier') || _.get(user, 'id'));
+
+/**
+ * @description Validates a user context against the accesspath rules set for the report
+ * @param {*} user
+ */
+const validateAccessPath = (user, req) => async report => {
+  let { accesspath, type } = report;
+
+  if (type === CONSTANTS.REPORT_TYPE.PUBLIC) return true;
+
+  if (type === CONSTANTS.REPORT_TYPE.PROTECTED) {
+    if (!accesspath) return false;
+    if (typeof accesspath !== 'object') return false;
+  }
+
+  if (type === CONSTANTS.REPORT_TYPE.PRIVATE && !accesspath) {
+    // if report is private then it should be accessible only by the creator of the report.
+    accesspath = accessPathForPrivateReports({ user });
+  }
+
+  const channelId = req.get('x-channel-id') ||
+    req.get('X-CHANNEL-ID') ||
+    _.get(user, 'rootOrg.hashTagId') ||
+    _.get(user, 'channel');
+  if (!channelId) {
+    const error = new Error('Channel ID is required');
+    error.statusCode = 400;
+    error.errorObject = { code: 'MISSING_CHANNEL_ID' };
+    throw error;
+  }
+  const dynamicCategories = await dynamicCategoryManager.getCategoriesForChannel(channelId);
+
+  for (let [key, value] of Object.entries(accesspath)) {
+    if (rules.has(key)) {
+      const validator = rules.get(key);
+      const success = validator(user, value);
+
+      if (!success && dynamicCategories.includes(key)) {
+        const normalizedValue = Array.isArray(value) ? value : [value];
+        const userValues = _.get(user, `framework.${key}`, []);
+        const normalizedUserValues = Array.isArray(userValues) ? userValues : [userValues];
+
+        const hasMatch = normalizedValue.some(val =>
+          normalizedUserValues.some(uv =>
+            String(uv).toLowerCase() === String(val).toLowerCase()
+          )
+        );
+
+        if (!hasMatch) return false;
+      }
+    }
+  }
+
+  return true;
+};
+
+/**
+ * @description func used when access path is sent in the filters for search query. Used to filter out the reports
+ * @param {*} accessPathSearchPayload
+ * @return {*} 
+ */
+const matchAccessPath = accessPathSearchPayload => {
+  const accessPathSearchPayloadIterable = Object.entries(accessPathSearchPayload);
+
+  return report => {
+    const { accesspath: reportAccessPath } = report;
+    if (!reportAccessPath) return false;
+
+    for (let [ruleName, value] of accessPathSearchPayloadIterable) {
+      value = Array.isArray(value) ? value : [value];
+
+      if (!(ruleName in reportAccessPath)) return false;
+
+      let ruleValue = reportAccessPath[ruleName];
+      ruleValue = Array.isArray(ruleValue) ? ruleValue : [ruleValue];
+      if (_.intersection(ruleValue, value).length === 0) return false;
+    }
+    return true;
+  };
+};
+
+/**
+ * @description private reports should should have accesspath set as userId of the creator
+ * @param {*} { user }
+ * @return {*} 
+ */
+const accessPathForPrivateReports = ({ user }) => {
+  if (user) {
+    return { userId: _.get(user, 'identifier') || _.get(user, 'id') };
+  }
+  return null;
+};
+
+/**
+ *  @description Only report_admin can access live, retired and draft version of the report while others can access only live reports.
+ * @param {*} { document, user }
+ * @return {*} 
+ */
+const roleBasedAccess = ({ report, user }) => {
+  if (!user) return false;
+  const { status } = report;
+  if ([CONSTANTS.REPORT_STATUS.DRAFT, CONSTANTS.REPORT_STATUS.RETIRED].includes(status)) {
+    if (!isUserAdmin(user)) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+module.exports = { validateAccessPath, matchAccessPath, accessPathForPrivateReports, isCreatorOfReport, roleBasedAccess };
+

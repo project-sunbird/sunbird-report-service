@@ -1,114 +1,31 @@
 const Router = require('express-promise-router');
-const db = require('../db');
+
+const { listSummaries, createSummary, getLatestSummary } = require('../controllers/summary');
+const { setApiResponseId } = require('../middleware/utils/setApiResponseId');
+const validate = require('../middleware/validators');
+const { SUMMARY } = require('../resources/routes.json');
+
 const router = new Router();
-const _ = require('lodash');
-const { v4 } = require('uuid');
-const { envVariables, sendApiResponse, constants } = require('../helpers');
-const { asyncErrorHandler } = require('../middlewares');
-const SUMMARY_TABLE_NAME = _.get(envVariables, 'SUMMARY_TABLE_NAME');
-
-const { validateListSummaryAPI, validateCreateSummaryAPI } = require('../middlewares');
-
 module.exports = router;
 
-router.post("/list",
-    validateListSummaryAPI,
-    asyncErrorHandler(async (req, res, next) => {
+router.post(SUMMARY.LIST.URL,
+  setApiResponseId(SUMMARY.LIST.API_ID),
+  validate(SUMMARY.LIST.VALIDATE.KEY, SUMMARY.LIST.VALIDATE.PATH),
+  listSummaries
+);
 
-        const id = _.get(req, "id") || "api.report.summary.list";
-        const filters = _.get(req, "body.request.filters") || {};
-        const whereClause = _.keys(filters).length
-            ? `WHERE ${_.join(
-                _.map(
-                    filters,
-                    (value, key) => `${key} = '${value}'`
-                ),
-                " AND "
-            )}`
-            : "";
+router.post(SUMMARY.CREATE.URL,
+  setApiResponseId(SUMMARY.CREATE.API_ID),
+  validate(SUMMARY.CREATE.VALIDATE.KEY, SUMMARY.CREATE.VALIDATE.PATH),
+  createSummary
+);
 
-        const query = `SELECT * FROM ${SUMMARY_TABLE_NAME} ${whereClause}`;
-        const { rows, rowCount } = await db.query(query);
-        const result = {
-            summaries: rows,
-            count: rowCount,
-        };
-        res.status(200).send(
-            sendApiResponse({
-                id,
-                responseCode: constants.RESPONSE_CODE.SUCCESS,
-                result,
-                params: {},
-            })
-        );
-    }));
+router.get(SUMMARY.LATEST_REPORT_SUMMARY.URL,
+  setApiResponseId(SUMMARY.LATEST_REPORT_SUMMARY.API_ID),
+  getLatestSummary
+);
 
-router.post("/create",
-    validateCreateSummaryAPI,
-    asyncErrorHandler(async (req, res, next) => {
-        const reqBody = _.get(req, "body.request.summary");
-        const id = _.get(req, "id") || "api.report.summary.create";
-        const summaryId = v4();
-        const body = { id: summaryId, ...reqBody };
-        const query = `INSERT INTO ${SUMMARY_TABLE_NAME} (${_.join(
-            _.keys(body),
-            ","
-        )}) SELECT ${_.join(_.keys(body), ",")} FROM jsonb_populate_record(NULL::${
-            SUMMARY_TABLE_NAME
-            }, '${JSON.stringify(body)}')`;
-
-        const { rows, rowCount } = await db.query(query);
-        const result = {
-            summaryId
-        };
-        res.status(200).send(
-            sendApiResponse({
-                id,
-                responseCode: constants.RESPONSE_CODE.SUCCESS,
-                result,
-                params: {},
-            })
-        );
-    }));
-
-router.get("/:reportid",
-    asyncErrorHandler(async (req, res, next) => {
-        const id = _.get(req, "id") || "api.report.summary.get";
-        const { rows, rowCount } = await db.query(
-            `SELECT * FROM ${SUMMARY_TABLE_NAME} WHERE reportid = $1 AND chartid IS NULL ORDER BY createdon DESC LIMIT 1`,
-            [req.params.reportid]
-        );
-        const result = {
-            summaries: rows,
-            count: rowCount,
-        };
-        res.status(200).send(
-            sendApiResponse({
-                id,
-                responseCode: constants.RESPONSE_CODE.SUCCESS,
-                result,
-                params: {},
-            })
-        );
-    }))
-
-router.get("/:reportid/:chartid",
-    asyncErrorHandler(async (req, res, next) => {
-        const id = _.get(req, "id") || "api.report.summary.get";
-        const { rows, rowCount } = await db.query(
-            `SELECT * FROM ${SUMMARY_TABLE_NAME} WHERE reportid = $1 AND chartid = $2 ORDER BY createdon DESC LIMIT 1`,
-            [req.params.reportid, req.params.chartid]
-        );
-        const result = {
-            summaries: rows,
-            count: rowCount,
-        };
-        res.status(200).send(
-            sendApiResponse({
-                id,
-                responseCode: constants.RESPONSE_CODE.SUCCESS,
-                result,
-                params: {},
-            })
-        );
-    }))
+router.get(SUMMARY.LATEST_CHART_SUMMARY.URL,
+  setApiResponseId(SUMMARY.LATEST_CHART_SUMMARY.API_ID),
+  getLatestSummary
+);

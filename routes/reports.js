@@ -1,201 +1,118 @@
 const Router = require('express-promise-router');
-const db = require('../db');
-const router = new Router();
-const _ = require('lodash');
-const { envVariables, sendApiResponse, constants } = require('../helpers');
-const { v4 } = require('uuid');
-const dateFormat = require('dateformat');
-const { ErrorResponse } = require('../utils/errorResponse');
-const { asyncErrorHandler } = require('../middlewares');
-const REPORT_TABLE_NAME = _.get(envVariables, 'TABLE_NAME');
+
+const validate = require('../middleware/validators');
+const { search, create, remove, read, update, publish, retire, readWithDatasets } = require('../controllers/report');
+const { setApiResponseId } = require('../middleware/utils/setApiResponseId');
 const summaryRoutes = require('./summary');
+const { REPORT } = require('../resources/routes.json');
+const { verifyToken } = require('../middleware/authentication/tokenValidator');
+const { fetchUserDetails } = require('../middleware/authentication/userDetails');
 
-
-const { validateCreateReportAPI, validateReadReportAPI, validateDeleteReportAPI, validateListReportAPI, validateUpdateReportAPI } = require('../middlewares');
-
+const router = new Router();
 module.exports = router;
 
-router.get(
-    "/get/:reportId",
-    validateReadReportAPI,
-    asyncErrorHandler(async (req, res, next) => {
-        const { reportId } = _.get(req, "params");
-        const id = _.get(req, "id") || "api.report.get";
-        const {
-            rows,
-            rowCount,
-        } = await db.query(
-            `SELECT * FROM ${REPORT_TABLE_NAME} WHERE reportId = $1`,
-            [reportId]
-        );
-        if (rowCount > 0) {
-            const result = {
-                reports: rows,
-                count: rowCount,
-            };
-            res.status(200).send(
-                sendApiResponse({
-                    id,
-                    responseCode: constants.RESPONSE_CODE.SUCCESS,
-                    result,
-                    params: {},
-                })
-            );
-        } else {
-            next(new ErrorResponse(constants.MESSAGES.NO_REPORT, 404));
-        }
-
-    }));
+router.post(
+  REPORT.LIST.URL,
+  setApiResponseId(REPORT.LIST.API_ID),
+  validate(REPORT.LIST.VALIDATE.KEY, REPORT.LIST.VALIDATE.PATH),
+  verifyToken({ tokenRequired: false }),
+  fetchUserDetails(),
+  search
+);
 
 router.post(
-    "/create",
-    validateCreateReportAPI,
-    asyncErrorHandler(async (req, res, next) => {
-        const reqBody = _.get(req, "body.request.report");
-        const id = _.get(req, "id") || "api.report.create";
+  REPORT.CREATE.URL,
+  setApiResponseId(REPORT.CREATE.API_ID),
+  validate(REPORT.CREATE.VALIDATE.KEY, REPORT.CREATE.VALIDATE.PATH),
+  verifyToken({ tokenRequired: false }),
+  fetchUserDetails(),
+  create
+);
 
-        const reportid = _.get(reqBody, "reportid") || v4();
-        const reportaccessurl =
-            _.get(reqBody, "reportaccessurl") ||
-            `${envVariables.ENV}/dashBoard/reports/${reportid}`;
-        const body = { reportid, reportaccessurl, ...reqBody };
-        const query = `INSERT INTO ${REPORT_TABLE_NAME} (${_.join(
-            _.keys(body),
-            ","
-        )}) SELECT ${_.join(_.keys(body), ",")} FROM jsonb_populate_record(NULL::${
-            REPORT_TABLE_NAME
-            }, '${JSON.stringify(body)}')`;
+router.get(
+  REPORT.READ.URL,
+  setApiResponseId(REPORT.READ.API_ID),
+  verifyToken({ tokenRequired: false }),
+  fetchUserDetails(),
+  read
+);
 
-        const { rows, rowCount } = await db.query(query);
-        const result = {
-            reportId: reportid,
-            reportaccessurl,
-        };
-        res.status(200).send(
-            sendApiResponse({
-                id,
-                responseCode: constants.RESPONSE_CODE.SUCCESS,
-                result,
-                params: {},
-            })
-        );
+router.get(
+  REPORT.READ_WITH_DATASETS.URL,
+  setApiResponseId(REPORT.READ_WITH_DATASETS.API_ID),
+  verifyToken({ tokenRequired: false }),
+  fetchUserDetails(),
+  readWithDatasets
+);
 
-    }));
+router.get(
+  REPORT.READ_HASH_WITH_DATASETS.URL,
+  setApiResponseId(REPORT.READ_HASH_WITH_DATASETS.API_ID),
+  verifyToken({ tokenRequired: false }),
+  fetchUserDetails(),
+  readWithDatasets
+);
+
+router.get(
+  REPORT.READ_HASH.URL,
+  setApiResponseId(REPORT.READ_HASH.API_ID),
+  verifyToken({ tokenRequired: false }),
+  fetchUserDetails(),
+  read
+);
 
 router.delete(
-    "/delete/:reportId",
-    validateDeleteReportAPI,
-    asyncErrorHandler(async (req, res, next) => {
-        const id = _.get(req, "id") || "api.report.delete";
-        const { reportId } = _.get(req, "params");
+  REPORT.DELETE.URL,
+  setApiResponseId(REPORT.DELETE.API_ID),
+  remove
+);
 
-        const {
-            rows,
-            rowCount,
-        } = await db.query(
-            `DELETE FROM ${REPORT_TABLE_NAME} WHERE reportId = $1`,
-            [reportId]
-        );
-        if (rowCount > 0) {
-            const result = {
-                reportId,
-            };
-            res.status(200).send(
-                sendApiResponse({
-                    id,
-                    responseCode: constants.RESPONSE_CODE.SUCCESS,
-                    result,
-                    params: {},
-                })
-            );
-        } else {
-            next(new ErrorResponse(constants.MESSAGES.NO_REPORT, 404));
-        }
-
-    })
+router.delete(
+  REPORT.DELETE_HASH.URL,
+  setApiResponseId(REPORT.DELETE_HASH.API_ID),
+  remove
 );
 
 router.patch(
-    "/update/:reportId",
-    validateUpdateReportAPI,
-    asyncErrorHandler(async (req, res, next) => {
-        const id = _.get(req, "id") || "api.report.update";
-        const { reportId } = _.get(req, "params");
-        const reqBody = _.get(req, "body.request.report");
+  REPORT.UPDATE_MANY.URL,
+  setApiResponseId(REPORT.UPDATE_MANY.API_ID),
+  validate(REPORT.UPDATE_MANY.VALIDATE.KEY, REPORT.UPDATE_MANY.VALIDATE.PATH),
+  update
+);
 
-        if (_.keys(reqBody).length) {
-            const updatedon = dateFormat(new Date());
-            const body = { ...reqBody, updatedon };
-            const query = `UPDATE ${REPORT_TABLE_NAME} SET ${_.join(
-                _.map(
-                    body,
-                    (value, key) =>
-                        `${key} = '${
-                        typeof value === "object" ? JSON.stringify(value) : value
-                        }'`
-                ),
-                ", "
-            )} WHERE reportid = $1`;
+router.patch(
+  REPORT.UPDATE.URL,
+  setApiResponseId(REPORT.UPDATE.API_ID),
+  validate(REPORT.UPDATE.VALIDATE.KEY, REPORT.UPDATE.VALIDATE.PATH),
+  update
+);
 
-            console.log(query);
-            const { rows, rowCount } = await db.query(query, [reportId]);
-            if (rowCount > 0) {
-                const result = {
-                    reportId,
-                };
-                res.status(200).send(
-                    sendApiResponse({
-                        id,
-                        responseCode: constants.RESPONSE_CODE.SUCCESS,
-                        result,
-                        params: {},
-                    })
-                );
-            } else {
-                next(new ErrorResponse(constants.MESSAGES.NO_REPORT, 404));
-            }
-        } else {
-            next(new ErrorResponse(constants.MESSAGES.NO_COLUMNS_TO_UPDATE, 400));
-        }
+router.get(
+  REPORT.PUBLISH.URL,
+  setApiResponseId(REPORT.PUBLISH.API_ID),
+  publish
+);
 
-    }));
+router.get(
+  REPORT.PUBLISH_HASH.URL,
+  setApiResponseId(REPORT.PUBLISH_HASH.API_ID),
+  publish
+);
 
-router.post(
-    "/list",
-    validateListReportAPI,
-    asyncErrorHandler(async (req, res, next) => {
-        const id = _.get(req, "id") || "api.report.list";
-        const filters = _.get(req, "body.request.filters") || {};
-        const whereClause = _.keys(filters).length
-            ? `WHERE ${_.join(
-                _.map(
-                    filters,
-                    (value, key) =>
-                        `${key} IN (${_.join(
-                            _.map(value, (val) => `'${val}'`),
-                            ", "
-                        )})`
-                ),
-                " AND "
-            )}`
-            : "";
+router.get(
+  REPORT.RETIRE.URL,
+  setApiResponseId(REPORT.RETIRE.API_ID),
+  retire
+);
 
-        const query = `SELECT * FROM ${REPORT_TABLE_NAME} ${whereClause}`;
-        const { rows, rowCount } = await db.query(query);
-        const result = {
-            reports: rows,
-            count: rowCount,
-        };
-        res.status(200).send(
-            sendApiResponse({
-                id,
-                responseCode: constants.RESPONSE_CODE.SUCCESS,
-                result,
-                params: {},
-            })
-        );
-
-    }));
+router.get(
+  REPORT.RETIRE_HASH.URL,
+  setApiResponseId(REPORT.RETIRE_HASH.API_ID),
+  retire
+);
 
 router.use('/summary', summaryRoutes);
+
+
+
 
